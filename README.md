@@ -13,7 +13,7 @@ Panduan ini memakai bounty [Bring the humans again](https://make.fun/bounty/brin
 ## Yang perlu disiapkan
 
 - Akun GitHub yang sudah ditautkan ke akun make.fun. Untuk bounty ini, repositori harus dimiliki akun GitHub yang sama.
-- Agent coding yang bisa merekam sesi kerjanya. Bounty ini meminta rekaman sesi langsung; jangan mengarang atau menyunting transkrip setelah pekerjaan selesai.
+- Agent coding yang menyimpan transkrip sesi kerjanya. Bounty ini meminta transkrip sesi dalam bundle; jangan mengarang atau menyunting transkrip setelah pekerjaan selesai.
 - Node.js 22 dan Git untuk menjalankan kit make.fun.
 - Dompet Solana yang terhubung ke akun make.fun untuk menandatangani entri dan menerima hadiah.
 
@@ -50,7 +50,7 @@ Contoh di bagian atas panduan ini sudah diisi untuk `jootboy/panduan-makefun`. J
 
 ## 3. Rekam sesi agent
 
-Sesi yang diunggah harus benar-benar berasal dari agent yang membangun panduan. Untuk bounty contoh ini, mulai perekaman **sebelum** memulai sesi agent, biarkan merekam selama agent bekerja, lalu hentikan setelah selesai. Gunakan kit resmi:
+Sesi yang diunggah harus benar-benar berasal dari agent yang membangun panduan. Bounty ini tidak memakai rekaman langsung melalui `makefun record`; kit menyatakan di `RULES.txt` bahwa hanya sebagian bounty yang memakai perintah tersebut. Untuk bounty ini, kirim transkrip dalam bundle menggunakan kit resmi:
 
 ```sh
 curl -sSL "https://make.fun/c/bring-the-humans-02/kit" | tar xz
@@ -58,23 +58,29 @@ cd bring-the-humans-02-kit
 node cli/makefun.mjs login --origin https://make.fun
 ```
 
-Masuklah dengan akun make.fun yang terhubung ke GitHub dan dompetmu. Ganti `PATH_FOLDER_REPO` di bawah dengan jalur folder repositori panduan. Jalankan perekam dari folder kit sebelum membuka sesi agent yang baru:
+Masuklah dengan akun make.fun yang terhubung ke GitHub dan dompetmu. Ganti placeholder dengan jalur folder repositori dan berkas yang berisi prompt awalmu secara persis. Sesuaikan `--prompt-origin` dengan asal prompt; jika bukan `typed`, tambahkan `--prompt-via` untuk menjelaskan pemicunya. Isi `--effort` dengan tingkat effort yang dipakai agent. Buat bundle dari sesi agent yang membangun panduan:
 
 ```sh
-mkdir -p ~/.makefun
-node cli/makefun.mjs record --competition bring-the-humans-02 --source "PATH_FOLDER_REPO" > ~/.makefun/record-bring-the-humans-02.log 2>&1 &
-echo $! > ~/.makefun/record-bring-the-humans-02.pid
+node cli/makefun.mjs bundle \
+  --repo "PATH_FOLDER_REPO" \
+  --out transcripts.tar.gz \
+  --prompt-file "PATH_BERKAS_PROMPT" \
+  --prompt-origin typed \
+  --effort "TINGKAT_EFFORT" \
+  --instructions none \
+  --mcp none
 ```
 
-Perekam harus sudah berjalan sebelum sesi agent dimulai. Gunakan agent yang didukung kit (misalnya GitHub Copilot CLI, Claude Code, Codex, atau Gemini CLI); `node cli/makefun.mjs record --help` menampilkan panduan versi kit yang terpasang.
+Opsi `--instructions none` dan `--mcp none` hanya tepat jika memang tidak ada berkas instruksi maupun MCP server yang dipakai; ikuti pesan kit jika mendeteksi sesuatu yang perlu dicatat. Jangan mengedit, membuat ulang, atau merangkum log sesi. Jangan pula memasukkan rahasia atau data pribadi yang tidak diperlukan ke percakapan agent.
 
-Setelah agent menyelesaikan dan menyimpan README serta berkas yang diperlukan, hentikan perekam agar rekaman disegel:
+Periksa bundle sebelum mengirim:
 
 ```sh
-kill "$(cat ~/.makefun/record-bring-the-humans-02.pid)"
+node cli/makefun.mjs check \
+  --kit . \
+  --repo "PATH_FOLDER_REPO" \
+  --transcripts transcripts.tar.gz
 ```
-
-Simpan ID rekaman yang tercetak atau ada di log. Jangan mengedit, membuat ulang, atau merangkum log sesi. Jangan pula memasukkan rahasia atau data pribadi yang tidak diperlukan ke percakapan agent. Jika proses rekaman gagal, baca pesan kit dan perbaiki sebelum mengirim entri.
 
 ## 4. Lengkapi dan dorong entri
 
@@ -91,20 +97,19 @@ Sebelum mengirim, catat hash lengkap 40 karakter yang dicetak oleh `git rev-pars
 
 ## 5. Kirim entri
 
-Periksa lagi syarat di [halaman bounty](https://make.fun/bounty/bring-the-humans-02). Dari dalam folder kit, kirim repositori, commit, ID rekaman, judul, dan berkas keypair dompet yang terhubung. Ganti nilai placeholder dengan milikmu:
+Periksa lagi syarat di [halaman bounty](https://make.fun/bounty/bring-the-humans-02). Setelah bundle lolos pemeriksaan, dari dalam folder kit kirim repositori, commit, judul, bundle transkrip, dan berkas keypair dompet yang terhubung. Ganti placeholder dengan milikmu; commit harus berupa SHA lengkap 40 karakter:
 
 ```sh
 node cli/makefun.mjs submit \
   --competition bring-the-humans-02 \
-  --recording ID_REKAMAN \
   --repo-url https://github.com/jootboy/panduan-makefun \
   --commit SHA_40_KARAKTER \
   --title "Panduan make.fun untuk pemula" \
-  --keypair "PATH_BERKAS_KEYPAIR" \
-  --repo "PATH_FOLDER_REPO"
+  --bundle transcripts.tar.gz \
+  --keypair "PATH_BERKAS_KEYPAIR"
 ```
 
-Untuk repositori lain, ganti URL GitHub dengan URL milikmu. Bounty ini memakai rekaman langsung: kirim `--recording`, bukan `--bundle` atau `--transcript`. Pastikan perekaman sudah dihentikan dan disegel sebelum menjalankan perintah kirim.
+Untuk repositori lain, ganti URL GitHub dengan URL milikmu.
 
 Setelah mengirim, periksa status dan hasil pemeriksaan:
 
